@@ -240,7 +240,7 @@
             color: var(--accent);
         }
 
-        /* карточка пробы */
+        /* карточка пробы — оптимизирована для мобильных */
         .probe-card {
             background: var(--chip-bg);
             border-radius: 1rem;
@@ -248,8 +248,8 @@
             margin-bottom: 1rem;
             display: flex;
             gap: 1rem;
-            align-items: center;
-            flex-wrap: wrap;
+            align-items: flex-start;
+            flex-wrap: nowrap; /* на больших экранах не переносим */
         }
         .probe-photo {
             flex-shrink: 0;
@@ -268,15 +268,28 @@
         }
         .probe-info {
             flex: 1;
+            min-width: 0; /* помогает при переносе текста */
         }
         .probe-name {
             font-weight: 700;
             font-size: 1.1rem;
+            margin-bottom: 0.2rem;
+            word-break: break-word;
+        }
+        .probe-details {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+            margin-bottom: 0.4rem;
+        }
+        .probe-details span {
+            display: inline-block;
+            margin-right: 0.5rem;
         }
         .probe-desc {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             color: var(--text-muted);
-            margin: 0.2rem 0;
+            margin-bottom: 0.6rem;
         }
         .watch-video-btn {
             background: var(--accent);
@@ -288,6 +301,7 @@
             cursor: pointer;
             font-size: 0.85rem;
             transition: 0.1s;
+            display: inline-block;
         }
         .watch-video-btn:hover {
             background: var(--accent-hover);
@@ -399,6 +413,7 @@
             color: var(--text-muted);
         }
 
+        /* ========== АДАПТИВНОСТЬ ДЛЯ МОБИЛЬНЫХ ========== */
         @media (max-width: 640px) {
             .modal-title {
                 font-size: 1.3rem;
@@ -406,9 +421,29 @@
             .series-grid {
                 gap: 1rem;
             }
+            /* Карточка пробы на мобильных: фото слева, текст справа, без колонки */
             .probe-card {
-                flex-direction: column;
-                text-align: center;
+                flex-wrap: nowrap;
+                gap: 0.8rem;
+                padding: 0.8rem;
+            }
+            .probe-photo img {
+                width: 70px;
+                height: 70px;
+            }
+            .probe-name {
+                font-size: 1rem;
+            }
+            .probe-details {
+                font-size: 0.75rem;
+            }
+            .probe-desc {
+                font-size: 0.7rem;
+            }
+            .watch-video-btn {
+                font-size: 0.75rem;
+                padding: 0.3rem 0.8rem;
+                margin-top: 0.2rem;
             }
             .video-close-btn {
                 top: 8px;
@@ -420,6 +455,18 @@
                 top: 15px;
                 right: 20px;
                 font-size: 1.6rem;
+            }
+        }
+
+        /* Очень маленькие экраны (≤400px) — чуть уменьшаем отступы */
+        @media (max-width: 480px) {
+            .probe-card {
+                gap: 0.6rem;
+                padding: 0.6rem;
+            }
+            .probe-photo img {
+                width: 60px;
+                height: 60px;
             }
         }
     </style>
@@ -481,18 +528,19 @@
 
     <script>
         // ======================= ДАННЫЕ ПРОБ =======================
-        // ВНИМАНИЕ: замените пути к фото и ссылки на видео на свои!
-        // Пример для персонажа "Рожнов". Добавляйте других персонажей по аналогии.
+        // Теперь в info можно передавать структурированную информацию
+        // Для удобства используем поля: age, size, height, education, etc.
+        // Пример для Рожнова:
         const PROBES_DB = {
             "Рожнов": {
                 probes: [
                     {
                         name: "Артем Зиновьев",
-                        // фото лежит в папке photos/Зиновьев.jpg (или .png)
                         photo: "photos/Зиновьев.jpg",
-                        // embed-ссылка на видео (можно просто src из iframe Яндекс.Видео, Rutube и т.п.)
                         videoUrl: "https://runtime.video.cloud.yandex.net/player/video/vplvpuvsvsgad47m3sxp/ysign1=39a460a2ec88dcbd9e11fa734feeeef4c981d2c644549f59286e6874e1a98735,pfx,ts=6a223bb0/vplvpuvsvsgad47m3sxp?autoplay=0&mute=0",
-                        info: "20 лет, 187/50/42, РГИСИ, мастерская такого-то"
+                        // Разбиваем информацию для красивого отображения
+                        details: "20 лет • 187 см • 50 размер • 42 нога",
+                        extra: "РГИСИ, мастерская такого-то"
                     }
                     // Сюда можно добавить ещё пробы для Рожнова
                 ]
@@ -560,7 +608,6 @@
             html += `</div>`;
             container.innerHTML = html;
 
-            // обработчики клика по персонажам
             document.querySelectorAll('.character-item').forEach(el => {
                 el.addEventListener('click', () => {
                     const charName = el.getAttribute('data-char');
@@ -587,6 +634,9 @@
             let html = '';
             for (const probe of characterProbes.probes) {
                 const photoPath = probe.photo && probe.photo.trim() !== "" ? probe.photo : "https://via.placeholder.com/200x200?text=Нет+фото";
+                // Формируем детальную информацию
+                const detailsHtml = probe.details ? `<div class="probe-details">${escapeHtml(probe.details)}</div>` : '';
+                const extraHtml = probe.extra ? `<div class="probe-desc">${escapeHtml(probe.extra)}</div>` : '';
                 html += `
                     <div class="probe-card">
                         <div class="probe-photo">
@@ -594,7 +644,8 @@
                         </div>
                         <div class="probe-info">
                             <div class="probe-name">${escapeHtml(probe.name)}</div>
-                            <div class="probe-desc">${escapeHtml(probe.info || '')}</div>
+                            ${detailsHtml}
+                            ${extraHtml}
                             <button class="watch-video-btn" data-video="${escapeHtml(probe.videoUrl)}">🎥 Смотреть видео</button>
                         </div>
                     </div>
@@ -659,12 +710,12 @@
                 }
             }
             
-            // Дополнительная обработка для Rutube (если передана ссылка вида /watch/)
+            // Дополнительная обработка для Rutube
             if (embedUrl.includes('rutube.ru') && embedUrl.includes('/watch/')) {
                 embedUrl = embedUrl.replace('/watch/', '/embed/');
             }
             
-            // Для YouTube (обычная ссылка)
+            // Для YouTube
             if (embedUrl.includes('youtube.com/watch') || embedUrl.includes('youtu.be/')) {
                 let videoId = '';
                 if (embedUrl.includes('youtu.be/')) {
