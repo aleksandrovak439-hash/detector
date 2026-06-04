@@ -249,7 +249,7 @@
             display: flex;
             gap: 1rem;
             align-items: flex-start;
-            flex-wrap: nowrap; /* на больших экранах не переносим */
+            flex-wrap: nowrap;
         }
         .probe-photo {
             flex-shrink: 0;
@@ -268,7 +268,7 @@
         }
         .probe-info {
             flex: 1;
-            min-width: 0; /* помогает при переносе текста */
+            min-width: 0;
         }
         .probe-name {
             font-weight: 700;
@@ -421,7 +421,6 @@
             .series-grid {
                 gap: 1rem;
             }
-            /* Карточка пробы на мобильных: фото слева, текст справа, без колонки */
             .probe-card {
                 flex-wrap: nowrap;
                 gap: 0.8rem;
@@ -457,8 +456,6 @@
                 font-size: 1.6rem;
             }
         }
-
-        /* Очень маленькие экраны (≤400px) — чуть уменьшаем отступы */
         @media (max-width: 480px) {
             .probe-card {
                 gap: 0.6rem;
@@ -485,13 +482,10 @@
     </header>
 
     <main class="main-content">
-        <!-- Отдельная плашка Утверждённые (пустая) -->
         <div class="approved-section" id="approvedSection">
             <h2>✅ Утверждённые (на все серии)</h2>
             <div class="approved-empty">Пока нет утверждённых актёров.</div>
         </div>
-
-        <!-- Список серий будет отрисован здесь -->
         <div id="seriesContainer"></div>
     </main>
 
@@ -504,9 +498,7 @@
         <div class="modal-container">
             <span class="modal-close" id="closeProbeModal">&times;</span>
             <div class="modal-title" id="modalCharTitle">Персонаж</div>
-            <div id="probesListContainer">
-                <!-- сюда динамически подставляются карточки проб -->
-            </div>
+            <div id="probesListContainer"></div>
         </div>
     </div>
 
@@ -520,32 +512,15 @@
     <div id="videoModal" class="video-modal">
         <div class="video-container">
             <button class="video-close-btn" id="closeVideoBtn">✕ Закрыть</button>
-            <div class="video-responsive" id="videoIframeContainer">
-                <!-- сюда будет вставлен iframe -->
-            </div>
+            <div class="video-responsive" id="videoIframeContainer"></div>
         </div>
     </div>
 
     <script>
         // ======================= ДАННЫЕ ПРОБ =======================
-        // Теперь в info можно передавать структурированную информацию
-        // Для удобства используем поля: age, size, height, education, etc.
-        // Пример для Рожнова:
+        // Сейчас данных нет — для всех персонажей будет показана заглушка
         const PROBES_DB = {
-            "Рожнов": {
-                probes: [
-                    {
-                        name: "Артем Зиновьев",
-                        photo: "photos/Зиновьев.jpg",
-                        videoUrl: "https://runtime.video.cloud.yandex.net/player/video/vplvpuvsvsgad47m3sxp/ysign1=39a460a2ec88dcbd9e11fa734feeeef4c981d2c644549f59286e6874e1a98735,pfx,ts=6a223bb0/vplvpuvsvsgad47m3sxp?autoplay=0&mute=0",
-                        // Разбиваем информацию для красивого отображения
-                        details: "20 лет • 187 см • 50 размер • 42 нога",
-                        extra: "РГИСИ, мастерская такого-то"
-                    }
-                    // Сюда можно добавить ещё пробы для Рожнова
-                ]
-            }
-            // Для остальных персонажей пока данных нет — откроется заглушка
+            // Здесь будут добавляться пробы, когда появятся
         };
 
         // ======================= ДАННЫЕ СЕРИЙ (1–16) =======================
@@ -579,7 +554,6 @@
             });
         }
 
-        // Рендер списка серий
         function renderSeries() {
             const container = document.getElementById('seriesContainer');
             let html = `<div class="series-grid">`;
@@ -616,7 +590,6 @@
             });
         }
 
-        // Открыть модальное окно со списком проб
         function openProbeModal(characterName) {
             const modal = document.getElementById('probeModal');
             const modalTitle = document.getElementById('modalCharTitle');
@@ -634,7 +607,6 @@
             let html = '';
             for (const probe of characterProbes.probes) {
                 const photoPath = probe.photo && probe.photo.trim() !== "" ? probe.photo : "https://via.placeholder.com/200x200?text=Нет+фото";
-                // Формируем детальную информацию
                 const detailsHtml = probe.details ? `<div class="probe-details">${escapeHtml(probe.details)}</div>` : '';
                 const extraHtml = probe.extra ? `<div class="probe-desc">${escapeHtml(probe.extra)}</div>` : '';
                 html += `
@@ -653,18 +625,14 @@
             }
             probesContainer.innerHTML = html;
             
-            // Увеличение фото по клику
             document.querySelectorAll('.probe-img').forEach(img => {
                 img.addEventListener('click', (e) => {
                     e.stopPropagation();
                     const photoUrl = img.getAttribute('data-photo');
-                    if (photoUrl) {
-                        openImageModal(photoUrl);
-                    }
+                    if (photoUrl) openImageModal(photoUrl);
                 });
             });
             
-            // Обработчики кнопок "Смотреть видео"
             document.querySelectorAll('.watch-video-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
                     const videoUrl = btn.getAttribute('data-video');
@@ -679,55 +647,32 @@
             modal.classList.add('active');
         }
 
-        // Открыть увеличенное фото
         function openImageModal(photoUrl) {
-            const modal = document.getElementById('imageModal');
-            const img = document.getElementById('fullscreenImage');
-            img.src = photoUrl;
-            modal.classList.add('active');
+            document.getElementById('fullscreenImage').src = photoUrl;
+            document.getElementById('imageModal').classList.add('active');
         }
-        
         function closeImageModal() {
             document.getElementById('imageModal').classList.remove('active');
         }
 
-        // Открыть видео-модалку с iframe
         function openVideoModal(videoSource) {
             const modal = document.getElementById('videoModal');
             const container = document.getElementById('videoIframeContainer');
             container.innerHTML = '';
             
             let embedUrl = videoSource.trim();
-            
-            // Если передан полный iframe-код, извлекаем src
             if (embedUrl.startsWith('<iframe')) {
                 const srcMatch = embedUrl.match(/src=["']([^"']+)["']/);
-                if (srcMatch && srcMatch[1]) {
-                    embedUrl = srcMatch[1];
-                } else {
-                    alert('Не удалось извлечь ссылку из iframe');
-                    return;
-                }
+                if (srcMatch && srcMatch[1]) embedUrl = srcMatch[1];
+                else { alert('Не удалось извлечь ссылку из iframe'); return; }
             }
-            
-            // Дополнительная обработка для Rutube
-            if (embedUrl.includes('rutube.ru') && embedUrl.includes('/watch/')) {
-                embedUrl = embedUrl.replace('/watch/', '/embed/');
-            }
-            
-            // Для YouTube
+            if (embedUrl.includes('rutube.ru') && embedUrl.includes('/watch/')) embedUrl = embedUrl.replace('/watch/', '/embed/');
             if (embedUrl.includes('youtube.com/watch') || embedUrl.includes('youtu.be/')) {
                 let videoId = '';
-                if (embedUrl.includes('youtu.be/')) {
-                    videoId = embedUrl.split('youtu.be/')[1]?.split('?')[0];
-                } else {
-                    videoId = embedUrl.split('v=')[1]?.split('&')[0];
-                }
-                if (videoId) {
-                    embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}`;
-                }
+                if (embedUrl.includes('youtu.be/')) videoId = embedUrl.split('youtu.be/')[1]?.split('?')[0];
+                else videoId = embedUrl.split('v=')[1]?.split('&')[0];
+                if (videoId) embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}`;
             }
-            
             const iframe = document.createElement('iframe');
             iframe.src = embedUrl;
             iframe.setAttribute('frameborder', '0');
@@ -740,31 +685,17 @@
         }
         
         function closeVideoModal() {
-            const modal = document.getElementById('videoModal');
-            const container = document.getElementById('videoIframeContainer');
-            container.innerHTML = '';
-            modal.classList.remove('active');
+            document.getElementById('videoIframeContainer').innerHTML = '';
+            document.getElementById('videoModal').classList.remove('active');
         }
 
-        // Закрытие модалок по крестикам и фону
-        document.getElementById('closeProbeModal').addEventListener('click', () => {
-            document.getElementById('probeModal').classList.remove('active');
-        });
-        document.getElementById('probeModal').addEventListener('click', (e) => {
-            if (e.target === document.getElementById('probeModal')) {
-                document.getElementById('probeModal').classList.remove('active');
-            }
-        });
+        document.getElementById('closeProbeModal').addEventListener('click', () => document.getElementById('probeModal').classList.remove('active'));
+        document.getElementById('probeModal').addEventListener('click', (e) => { if (e.target === document.getElementById('probeModal')) document.getElementById('probeModal').classList.remove('active'); });
         document.getElementById('closeImageBtn').addEventListener('click', closeImageModal);
-        document.getElementById('imageModal').addEventListener('click', (e) => {
-            if (e.target === document.getElementById('imageModal')) closeImageModal();
-        });
+        document.getElementById('imageModal').addEventListener('click', (e) => { if (e.target === document.getElementById('imageModal')) closeImageModal(); });
         document.getElementById('closeVideoBtn').addEventListener('click', closeVideoModal);
-        document.getElementById('videoModal').addEventListener('click', (e) => {
-            if (e.target === document.getElementById('videoModal')) closeVideoModal();
-        });
+        document.getElementById('videoModal').addEventListener('click', (e) => { if (e.target === document.getElementById('videoModal')) closeVideoModal(); });
         
-        // Закрытие по клавише Esc
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 if (document.getElementById('videoModal').classList.contains('active')) closeVideoModal();
@@ -778,12 +709,10 @@
             const saved = localStorage.getItem('theme');
             const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
             if (saved === 'dark' || (!saved && prefersDark)) {
-                document.body.classList.remove('light');
-                document.body.classList.add('dark');
+                document.body.classList.remove('light'); document.body.classList.add('dark');
                 updateThemeUI('dark');
             } else {
-                document.body.classList.remove('dark');
-                document.body.classList.add('light');
+                document.body.classList.remove('dark'); document.body.classList.add('light');
                 updateThemeUI('light');
             }
         }
@@ -791,30 +720,23 @@
             const icon = document.getElementById('themeIcon');
             const text = document.getElementById('themeText');
             if (theme === 'dark') {
-                icon.textContent = '🌙';
-                text.textContent = 'Тёмная тема';
+                icon.textContent = '🌙'; text.textContent = 'Тёмная тема';
             } else {
-                icon.textContent = '🌞';
-                text.textContent = 'Светлая тема';
+                icon.textContent = '🌞'; text.textContent = 'Светлая тема';
             }
         }
         function toggleTheme() {
             const isDark = document.body.classList.contains('dark');
             if (isDark) {
-                document.body.classList.remove('dark');
-                document.body.classList.add('light');
-                localStorage.setItem('theme', 'light');
-                updateThemeUI('light');
+                document.body.classList.remove('dark'); document.body.classList.add('light');
+                localStorage.setItem('theme', 'light'); updateThemeUI('light');
             } else {
-                document.body.classList.remove('light');
-                document.body.classList.add('dark');
-                localStorage.setItem('theme', 'dark');
-                updateThemeUI('dark');
+                document.body.classList.remove('light'); document.body.classList.add('dark');
+                localStorage.setItem('theme', 'dark'); updateThemeUI('dark');
             }
         }
         document.getElementById('themeSwitcher').addEventListener('click', toggleTheme);
         
-        // Запуск
         renderSeries();
         initTheme();
     </script>
