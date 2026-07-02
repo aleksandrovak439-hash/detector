@@ -191,7 +191,7 @@
             display: inline-block;
             width: 10px;
             height: 10px;
-            background-color: #10b981; /* зелёный */
+            background-color: #10b981;
             border-radius: 50%;
             margin-left: 0.2rem;
             flex-shrink: 0;
@@ -739,7 +739,6 @@
                         const probeData = PROBES_DB[ch];
                         const hasProbes = probeData && probeData.probes && probeData.probes.length > 0;
                         const probeCount = hasProbes ? probeData.probes.length : 0;
-                        // Экранируем имя персонажа для data-атрибута
                         const escapedChar = escapeHtml(ch);
                         html += `<li class="character-item" data-char="${escapedChar}">${escapedChar}`;
                         if (hasProbes) {
@@ -827,38 +826,57 @@
             document.getElementById('imageModal').classList.remove('active');
         }
 
+        // ========== ИСПРАВЛЕННАЯ ФУНКЦИЯ ОТКРЫТИЯ ВИДЕО ==========
         function openVideoModal(videoSource) {
             const modal = document.getElementById('videoModal');
             const container = document.getElementById('videoIframeContainer');
             container.innerHTML = '';
             
-            let embedUrl = videoSource.trim();
-            if (embedUrl.startsWith('<iframe')) {
-                const srcMatch = embedUrl.match(/src=["']([^"']+)["']/);
-                if (srcMatch && srcMatch[1]) embedUrl = srcMatch[1];
-                else { alert('Не удалось извлечь ссылку из iframe'); return; }
+            let videoHtml = videoSource.trim();
+            
+            // Если передан iframe-код — вставляем его целиком
+            if (videoHtml.startsWith('<iframe')) {
+                // Вставляем iframe как HTML, сохраняя все атрибуты
+                container.innerHTML = videoHtml;
+                // Убедимся, что iframe занимает 100% контейнера
+                const iframe = container.querySelector('iframe');
+                if (iframe) {
+                    iframe.style.width = '100%';
+                    iframe.style.height = '100%';
+                    iframe.style.border = '0';
+                }
+            } else {
+                // Если передана просто ссылка, создаём iframe
+                let embedUrl = videoHtml;
+                // для Rutube, Youtube и т.д. можно добавить конвертацию
+                if (embedUrl.includes('rutube.ru') && embedUrl.includes('/watch/')) {
+                    embedUrl = embedUrl.replace('/watch/', '/embed/');
+                }
+                if (embedUrl.includes('youtube.com/watch') || embedUrl.includes('youtu.be/')) {
+                    let videoId = '';
+                    if (embedUrl.includes('youtu.be/')) videoId = embedUrl.split('youtu.be/')[1]?.split('?')[0];
+                    else videoId = embedUrl.split('v=')[1]?.split('&')[0];
+                    if (videoId) embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}`;
+                }
+                const iframe = document.createElement('iframe');
+                iframe.src = embedUrl;
+                iframe.setAttribute('frameborder', '0');
+                iframe.setAttribute('allow', 'autoplay; fullscreen; accelerometer; gyroscope; picture-in-picture; encrypted-media');
+                iframe.setAttribute('allowfullscreen', 'true');
+                iframe.style.width = '100%';
+                iframe.style.height = '100%';
+                container.appendChild(iframe);
             }
-            if (embedUrl.includes('rutube.ru') && embedUrl.includes('/watch/')) embedUrl = embedUrl.replace('/watch/', '/embed/');
-            if (embedUrl.includes('youtube.com/watch') || embedUrl.includes('youtu.be/')) {
-                let videoId = '';
-                if (embedUrl.includes('youtu.be/')) videoId = embedUrl.split('youtu.be/')[1]?.split('?')[0];
-                else videoId = embedUrl.split('v=')[1]?.split('&')[0];
-                if (videoId) embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}`;
-            }
-            const iframe = document.createElement('iframe');
-            iframe.src = embedUrl;
-            iframe.setAttribute('frameborder', '0');
-            iframe.setAttribute('allow', 'autoplay; fullscreen; accelerometer; gyroscope; picture-in-picture; encrypted-media');
-            iframe.setAttribute('allowfullscreen', 'true');
-            iframe.style.width = '100%';
-            iframe.style.height = '100%';
-            container.appendChild(iframe);
+            
             modal.classList.add('active');
         }
+        // ============================================================
         
         function closeVideoModal() {
-            document.getElementById('videoIframeContainer').innerHTML = '';
-            document.getElementById('videoModal').classList.remove('active');
+            const modal = document.getElementById('videoModal');
+            const container = document.getElementById('videoIframeContainer');
+            container.innerHTML = '';
+            modal.classList.remove('active');
         }
 
         document.getElementById('closeProbeModal').addEventListener('click', () => document.getElementById('probeModal').classList.remove('active'));
