@@ -178,11 +178,28 @@
             cursor: pointer;
             transition: 0.1s;
             border: 1px solid transparent;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
         }
         .character-item:hover {
             border-color: var(--accent);
             color: var(--accent);
             transform: scale(1.02);
+        }
+        .character-item .has-probes {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            background-color: #10b981; /* зелёный */
+            border-radius: 50%;
+            margin-left: 0.2rem;
+            flex-shrink: 0;
+        }
+        .character-item .probe-count {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-left: 0.2rem;
         }
         .empty-message {
             color: var(--text-muted);
@@ -465,6 +482,9 @@
                 width: 60px;
                 height: 60px;
             }
+            .character-item .probe-count {
+                font-size: 0.6rem;
+            }
         }
     </style>
 </head>
@@ -518,23 +538,165 @@
 
     <script>
         // ======================= ДАННЫЕ ПРОБ =======================
-        // Сейчас данных нет — для всех персонажей будет показана заглушка
         const PROBES_DB = {
-            // Здесь будут добавляться пробы, когда появятся
+            "Андрей": {
+                probes: [
+                    {
+                        name: "Котов Лука",
+                        photo: "photos/Котов.jpg",
+                        videoUrl: `<iframe src="https://vkvideo.ru/video_ext.php?oid=-221927186&id=456239159&hash=66dd844ea8a59d34&hd=3" width="1280" height="720" allow="autoplay; encrypted-media; fullscreen; picture-in-picture; screen-wake-lock;" frameborder="0" allowfullscreen></iframe>`,
+                        details: "135/140/35 (рост/размер/обувь)"
+                    },
+                    {
+                        name: "Круглов Александр",
+                        photo: "photos/Круглов.jpg",
+                        videoUrl: `<iframe src="https://vkvideo.ru/video_ext.php?oid=-221927186&id=456239156&hash=1bba99a45a4839d0&hd=3" width="1280" height="720" allow="autoplay; encrypted-media; fullscreen; picture-in-picture; screen-wake-lock;" frameborder="0" allowfullscreen></iframe>`,
+                        details: "8 лет (16.07) • 134 см • 134 размер • 34 нога"
+                    },
+                    {
+                        name: "Кичко Даниил",
+                        photo: "photos/Кичко.jpg",
+                        videoUrl: `<iframe src="https://vkvideo.ru/video_ext.php?oid=-221927186&id=456239157&hash=c384d6ee8e4d94a3&hd=3" width="1280" height="720" allow="autoplay; encrypted-media; fullscreen; picture-in-picture; screen-wake-lock;" frameborder="0" allowfullscreen></iframe>`,
+                        details: "8 лет • 134 см • 134 размер • 34 нога"
+                    },
+                    {
+                        name: "Алексеев Тимофей",
+                        photo: "photos/Алексеев.jpg",
+                        videoUrl: `<iframe src="https://vkvideo.ru/video_ext.php?oid=-221927186&id=456239158&hash=c7d23e8a0c61e341&hd=3" width="1280" height="720" allow="autoplay; encrypted-media; fullscreen; picture-in-picture; screen-wake-lock;" frameborder="0" allowfullscreen></iframe>`,
+                        details: "9 лет • 132 см • 35 нога"
+                    }
+                ]
+            },
+            "ВРАЧ": {
+                probes: [
+                    {
+                        name: "Сидоров Константин",
+                        photo: "photos/Сидоров.jpg",
+                        videoUrl: `<iframe src="https://vkvideo.ru/video_ext.php?oid=-221927186&id=456239160&hash=19e01fc12161d406&hd=3" width="1280" height="720" allow="autoplay; encrypted-media; fullscreen; picture-in-picture; screen-wake-lock;" frameborder="0" allowfullscreen></iframe>`,
+                        details: "38 лет • 185 см • 48-50 размер • 43 нога"
+                    },
+                    {
+                        name: "Нагай Павел",
+                        photo: "photos/Нагай.jpg",
+                        videoUrl: `<iframe src="https://vkvideo.ru/video_ext.php?oid=-221927186&id=456239161&hash=d3869e4e82153a54&hd=3" width="1280" height="720" allow="autoplay; encrypted-media; fullscreen; picture-in-picture; screen-wake-lock;" frameborder="0" allowfullscreen></iframe>`,
+                        details: "40 лет • 178 см • 50 размер • 42 нога"
+                    },
+                    {
+                        name: "Тарасов Антон",
+                        photo: "photos/Тарасов.jpg",
+                        videoUrl: `<iframe src="https://vkvideo.ru/video_ext.php?oid=-221927186&id=456239162&hash=f3d46f2ddda4b680&hd=3" width="1280" height="720" allow="autoplay; encrypted-media; fullscreen; picture-in-picture; screen-wake-lock;" frameborder="0" allowfullscreen></iframe>`,
+                        details: "44 года • 182 см • 52 размер • 44 нога"
+                    },
+                    {
+                        name: "Миронович Александр",
+                        photo: "photos/Миронович.jpg",
+                        videoUrl: `<iframe src="https://vkvideo.ru/video_ext.php?oid=-221927186&id=456239163&hash=58d68cfe0339ceae&hd=3" width="1280" height="720" allow="autoplay; encrypted-media; fullscreen; picture-in-picture; screen-wake-lock;" frameborder="0" allowfullscreen></iframe>`,
+                        details: "55 лет • 177 см • 48-50 размер • 43 нога"
+                    }
+                ]
+            },
+            "Дежурный": {
+                probes: [
+                    {
+                        name: "Романов Андрей",
+                        photo: "photos/Романов.jpg",
+                        videoUrl: `<iframe src="https://vkvideo.ru/video_ext.php?oid=-221927186&id=456239164&hash=ab9b14747d604c58&hd=3" width="1280" height="720" allow="autoplay; encrypted-media; fullscreen; picture-in-picture; screen-wake-lock;" frameborder="0" allowfullscreen></iframe>`,
+                        details: "45 лет • 178 см • 56 размер • 44 нога"
+                    },
+                    {
+                        name: "Драница Виталий Анатольевич",
+                        photo: "photos/Драница.jpg",
+                        videoUrl: `<iframe src="https://vkvideo.ru/video_ext.php?oid=-221927186&id=456239167&hash=6a8a9eb6c4ae6619&hd=3" width="1280" height="720" allow="autoplay; encrypted-media; fullscreen; picture-in-picture; screen-wake-lock;" frameborder="0" allowfullscreen></iframe>`,
+                        details: "47 лет • 175 см • 52 размер • 40 нога"
+                    },
+                    {
+                        name: "Александр Иванов",
+                        photo: "photos/Иванов.jpg",
+                        videoUrl: `<iframe src="https://vkvideo.ru/video_ext.php?oid=-221927186&id=456239167&hash=6a8a9eb6c4ae6619&hd=3" width="1280" height="720" allow="autoplay; encrypted-media; fullscreen; picture-in-picture; screen-wake-lock;" frameborder="0" allowfullscreen></iframe>`,
+                        details: "176 см • 52 размер • 42 нога"
+                    }
+                ]
+            },
+            "Мать Стаса": {
+                probes: [
+                    {
+                        name: "Филимонова Татьяна",
+                        photo: "photos/Филимонова.jpg",
+                        videoUrl: `<iframe src="https://vkvideo.ru/video_ext.php?oid=-221927186&id=456239169&hash=72b942432e6126fc&hd=3" width="1280" height="720" allow="autoplay; encrypted-media; fullscreen; picture-in-picture; screen-wake-lock;" frameborder="0" allowfullscreen></iframe>`,
+                        details: "возраст не указан"
+                    },
+                    {
+                        name: "Пигалкина Галина",
+                        photo: "photos/Пигалкина.jpg",
+                        videoUrl: `<iframe src="https://vkvideo.ru/video_ext.php?oid=-221927186&id=456239170&hash=dc2979304fae956c&hd=3" width="1280" height="720" allow="autoplay; encrypted-media; fullscreen; picture-in-picture; screen-wake-lock;" frameborder="0" allowfullscreen></iframe>`,
+                        details: "67 лет • 169 см • 48 размер • 38 нога"
+                    },
+                    {
+                        name: "Крестьянцева Елена",
+                        photo: "photos/Крестьянцева.jpg",
+                        videoUrl: `<iframe src="https://vkvideo.ru/video_ext.php?oid=-221927186&id=456239171&hash=4c23a6a4c3becba2&hd=3" width="1280" height="720" allow="autoplay; encrypted-media; fullscreen; picture-in-picture; screen-wake-lock;" frameborder="0" allowfullscreen></iframe>`,
+                        details: "66 лет"
+                    }
+                ]
+            },
+            "соседка Дроздова": {
+                probes: [
+                    {
+                        name: "Свирко Елена",
+                        photo: "photos/Свирко.jpg",
+                        videoUrl: `<iframe src="https://vkvideo.ru/video_ext.php?oid=-221927186&id=456239172&hash=9c81c13e2da2ba25&hd=3" width="1280" height="720" allow="autoplay; encrypted-media; fullscreen; picture-in-picture; screen-wake-lock;" frameborder="0" allowfullscreen></iframe>`,
+                        details: "возраст не указан"
+                    },
+                    {
+                        name: "Ерасова Марина",
+                        photo: "photos/Ерасова.jpg",
+                        videoUrl: `<iframe src="https://vkvideo.ru/video_ext.php?oid=-221927186&id=456239173&hash=c273ce9c68f7ff04&hd=3" width="1280" height="720" allow="autoplay; encrypted-media; fullscreen; picture-in-picture; screen-wake-lock;" frameborder="0" allowfullscreen></iframe>`,
+                        details: "64 года • 170 см • 50 размер • 39 нога"
+                    },
+                    {
+                        name: "Королева Марина",
+                        photo: "photos/Королева.jpg",
+                        videoUrl: `<iframe src="https://vkvideo.ru/video_ext.php?oid=-221927186&id=456239175&hash=82cb32e311a48439&hd=3" width="1280" height="720" allow="autoplay; encrypted-media; fullscreen; picture-in-picture; screen-wake-lock;" frameborder="0" allowfullscreen></iframe>`,
+                        details: "возраст не указан"
+                    }
+                ]
+            },
+            "соседка Шаталовых": {
+                probes: [
+                    {
+                        name: "Ольга Костырко",
+                        photo: "photos/Костырко.jpg",
+                        videoUrl: `<iframe src="https://vkvideo.ru/video_ext.php?oid=-221927186&id=456239176&hash=9691f25323c7614b&hd=3" width="1280" height="720" allow="autoplay; encrypted-media; fullscreen; picture-in-picture; screen-wake-lock;" frameborder="0" allowfullscreen></iframe>`,
+                        details: "164 см • 46 размер • 39 нога"
+                    },
+                    {
+                        name: "Орлова Людмила",
+                        photo: "photos/Орлова.jpg",
+                        videoUrl: `<iframe src="https://vkvideo.ru/video_ext.php?oid=-221927186&id=456239177&hash=d70a0fd5fe8b645a&hd=3" width="1280" height="720" allow="autoplay; encrypted-media; fullscreen; picture-in-picture; screen-wake-lock;" frameborder="0" allowfullscreen></iframe>`,
+                        details: "47 лет • 164 см • 44 размер • 37 нога"
+                    },
+                    {
+                        name: "Еременко Татьяна",
+                        photo: "photos/Еременко.jpg",
+                        videoUrl: `<iframe src="https://vkvideo.ru/video_ext.php?oid=-221927186&id=456239178&hash=10d4eddf17cb4190&hd=3" width="1280" height="720" allow="autoplay; encrypted-media; fullscreen; picture-in-picture; screen-wake-lock;" frameborder="0" allowfullscreen></iframe>`,
+                        details: "177 см • 42-44 размер"
+                    }
+                ]
+            }
         };
 
         // ======================= ДАННЫЕ СЕРИЙ (1–16) =======================
         const SERIES_DATA = [
             { number: 1, characters: ["Рожнова","Рожнов","Девочка","Изюмов","Кира","Консьержка","Кинолог","Жительница дома","Дворник - азиат"] },
-            { number: 2, characters: [] },
+            { number: 2, characters: ["соседка Дроздова"] },
             { number: 3, characters: ["Николай Корнилов","Хостес","Охранник ресторана","Массажистка","Мужик в трусах","Мать Стаса","Стас","Официантка","Плисов","Елена","Кладовщик"] },
-            { number: 4, characters: ["Котов","Сержант","Старший Сержант","Секретарша","Директор Школы","Охранник Стройки","Бармен"] },
+            { number: 4, characters: ["Котов","Сержант","Старший Сержант","Секретарша","Директор Школы","Охранник Стройки","Бармен","соседка Шаталовых"] },
             { number: 5, characters: [] },
-            { number: 6, characters: [] },
+            { number: 6, characters: ["Андрей", "ВРАЧ"] },
             { number: 7, characters: [] },
             { number: 8, characters: [] },
             { number: 9, characters: ["Плешаков","Менеджер","Дворник - азиат","Стулов","Консьержка","Женщина","Бабуля","Горохов","Курьер (каскадер)","Муж Петровой"] },
-            { number: 10, characters: [] },
+            { number: 10, characters: ["Дежурный"] },
             { number: 11, characters: [] },
             { number: 12, characters: ["Рожкова","Сосед","Журналистка","Оператор","Оксана","Владелец Тира","Прохожий"] },
             { number: 13, characters: [] },
@@ -574,7 +736,17 @@
                     html += `<div class="empty-message">✨ Персонажи скоро появятся</div>`;
                 } else {
                     for (const ch of chars) {
-                        html += `<li class="character-item" data-char="${escapeHtml(ch)}">${escapeHtml(ch)}</li>`;
+                        const probeData = PROBES_DB[ch];
+                        const hasProbes = probeData && probeData.probes && probeData.probes.length > 0;
+                        const probeCount = hasProbes ? probeData.probes.length : 0;
+                        // Экранируем имя персонажа для data-атрибута
+                        const escapedChar = escapeHtml(ch);
+                        html += `<li class="character-item" data-char="${escapedChar}">${escapedChar}`;
+                        if (hasProbes) {
+                            html += `<span class="has-probes" title="Есть пробы"></span>`;
+                            html += `<span class="probe-count">(${probeCount})</span>`;
+                        }
+                        html += `</li>`;
                     }
                 }
                 html += `</div></div></div>`;
